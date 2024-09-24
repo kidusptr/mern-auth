@@ -3,12 +3,12 @@ import { connectDB } from "./config/db.js";
 import dotenv from "dotenv";
 
 const app = express();
-
+const PORT = process.env.PORT || 4000;
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
-app.listen(3000, () => {
+app.listen(PORT, () => {
   connectDB();
-  console.log("Server started on port 3000");
+  console.log("Server started on port " + PORT);
 });
