@@ -16,23 +16,24 @@ export const signup = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const verficationToken = generateVerificationCode();
-    const user = await User.create({
+    const verificationToken = Math.floor(
+      100000 + Math.random() * 900000
+    ).toString();
+
+    const user = new User({
       email,
       password: hashedPassword,
       name,
-      verficationToken,
-      verificationTokenExpiresAt: Date.now() + 3600000,
+      verificationToken,
+      verificationTokenExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
     });
     await user.save();
     generateTokenAndSetCookie(res, user._id);
-    res
-      .status(201)
-      .json({
-        success: true,
-        message: "User created successfully",
-        user: { ...user._doc, password: "****" },
-      });
+    res.status(201).json({
+      success: true,
+      message: "User created successfully",
+      user: { ...user._doc, password: undefined },
+    });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }
