@@ -1,8 +1,8 @@
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
 import { User } from "../models/user.model.js";
 import { generateVerificationCode } from "../config/generateVerificationCode.js";
 import { generateTokenAndSetCookie } from "../config/generateTokenAndSetCookie.js";
+import { sendVerificationEmail } from "../mailtrap/emails.js";
 
 export const signup = async (req, res) => {
   const { email, password, name } = req.body;
@@ -16,9 +16,7 @@ export const signup = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const verificationToken = Math.floor(
-      100000 + Math.random() * 900000
-    ).toString();
+    const verificationToken = generateVerificationCode();
 
     const user = new User({
       email,
@@ -28,7 +26,11 @@ export const signup = async (req, res) => {
       verificationTokenExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
     });
     await user.save();
+
     generateTokenAndSetCookie(res, user._id);
+
+    sendVerificationEmail(user.email, verificationToken);
+
     res.status(201).json({
       success: true,
       message: "User created successfully",
@@ -43,6 +45,31 @@ export const login = (req, res) => {
   res.send("login");
 };
 
+export const verifyEmail = async (req, res) => {
+  const { code } = req.body.verificationCode;
+  try {
+    if (!code) {
+      throw new Error("Verification code is required");
+    }
+    const user = await User.findOne({ verificationToken: code });
+    if (!user) {
+      throw new Error("Invalid verification code");
+    }
+    if (user.verificationTokenExpiresAt < Date.now()) {
+      throw new Error("Verification code expired");
+    }
+    user.isVerified = true;
+    user.verificationToken = null;
+    user.verificationTokenExpiresAt = null;
+    await user.save();
+
+    res
+      .status(200)
+      .json({ success: true, message: "Email verified successfully" });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
 export const logout = (req, res) => {
   res.send("logout");
 };
