@@ -13,7 +13,7 @@ export const VERIFICATION_EMAIL_TEMPLATE = `
   <div style="background-color: #f9f9f9; padding: 20px; border-radius: 0 0 5px 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
     <p>Hello,</p>
     <p>Thank you for signing up! Your verification code is:</p>
-    <div style="text-align: center; margin: 30px 0;">
+    <div style="text-align: center; margin: 30px 0;"> 
       <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #4CAF50;">{verificationCode}</span>
     </div>
     <p>Enter this code on the verification page to complete your registration.</p>

@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import { User } from "../models/user.model.js";
 import { generateVerificationCode } from "../config/generateVerificationCode.js";
 import { generateTokenAndSetCookie } from "../config/generateTokenAndSetCookie.js";
-import { sendVerificationEmail } from "../mailtrap/emails.js";
+import { sendVerificationEmail, sendWelcomeEmail } from "../mailtrap/emails.js";
 
 export const signup = async (req, res) => {
   const { email, password, name } = req.body;
@@ -46,7 +46,8 @@ export const login = (req, res) => {
 };
 
 export const verifyEmail = async (req, res) => {
-  const { code } = req.body.verificationCode;
+  const { code } = req.body;
+  console.log(code);
   try {
     if (!code) {
       throw new Error("Verification code is required");
@@ -63,6 +64,7 @@ export const verifyEmail = async (req, res) => {
     user.verificationTokenExpiresAt = null;
     await user.save();
 
+    sendWelcomeEmail(user.email, user.name);
     res
       .status(200)
       .json({ success: true, message: "Email verified successfully" });
