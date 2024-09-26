@@ -97,8 +97,8 @@ export const verifyEmail = async (req, res) => {
       throw new Error("Verification code expired");
     }
     user.isVerified = true;
-    user.verificationToken = null;
-    user.verificationTokenExpiresAt = null;
+    user.verificationToken = undefined;
+    user.verificationTokenExpiresAt = undefined;
     await user.save();
 
     sendWelcomeEmail(user.email, user.name);
@@ -151,14 +151,26 @@ export const resetPassword = async (req, res) => {
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     user.password = hashedPassword;
-    user.resetPasswordToken = null;
-    user.resetPasswordTokenExpiresAt = null;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordTokenExpiresAt = undefined;
     await user.save();
 
     await sendPasswordResetSuccessEmail(user.email, user.name);
     res
       .status(200)
       .json({ success: true, message: "Password reset successfully" });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+export const checkAuth = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).select("-password");
+    if (!user) {
+      throw new Error("User not found");
+    }
+    res.status(200).json({ success: true, user });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }
